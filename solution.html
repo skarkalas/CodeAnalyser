@@ -1,0 +1,161 @@
+<html>
+<head>
+	<title>Code Analyser</title>
+	<script language="javascript" type="text/javascript" src="esprima.js"></script>
+	<script language="javascript" type="text/javascript">
+		function analyse()
+		{
+			var editor=document.getElementById("editor");
+			var code=editor.value;
+			var options={};
+			options.loc=true;
+			options.range=true;
+			options.raw=true;
+			options.tokens=true;
+			syntax=esprima.parse(code);//,options);
+			characteristics=
+			{
+				NAS:	0,
+				LoC:	0,
+				MCC:	0,
+				N1:		0,
+				N2:		0,
+				n1:		function(){return Object.keys(characteristics.uniqueOperators).length},
+				n2:		function(){return Object.keys(characteristics.uniqueOperands).length},
+				N:		0,
+				n:		0,
+				NoV:	0,
+				NoL:	0,
+				NoNL:	0,
+				NoB:	0,
+				uniqueOperators: new Array(),
+				uniqueOperands: new Array()
+			};
+		
+			analyseCode(syntax);
+			alert('No of assignment statements:' +characteristics.NAS);
+			alert('Lines of code:' +characteristics.LoC);
+			alert('Total No of Operators:' +characteristics.N1);
+			alert('No of unique operators:' +characteristics.n1());
+			alert('Total No of Operands:' +characteristics.N2);
+			alert('No of unique operands:' +characteristics.n2());
+			
+			for(p in characteristics.uniqueOperands)
+			alert(p+' '+characteristics.uniqueOperands[p]);
+			
+		}
+		
+		function analyseCode(syntax)
+		{
+			if(typeof syntax!=='object')
+			{
+				return;
+			}
+			
+			if(typeof syntax.type!=='string')
+			{
+				return;
+			}
+
+			switch(syntax.type.toLowerCase())
+			{
+				case 'program':
+					characteristics.LoC=syntax.body.length;
+					for(var element in syntax.body)
+					{
+						analyseCode(syntax.body[element]);
+					}
+					break;
+				case 'variabledeclaration':
+					for(var element in syntax.declarations)
+					{
+						analyseCode(syntax.declarations[element]);
+					}
+					break;
+				case 'variabledeclarator':
+					//assignment statement on variable declaration (initialisation)
+					if(syntax.init!==null)
+					{
+						characteristics.NAS++;
+						analyseCode(syntax.init);
+					}
+					break;
+				case 'expressionstatement':
+					analyseCode(syntax.expression);
+					break;
+				case 'callexpression':
+					for(var element in syntax.arguments)
+					{
+						analyseCode(syntax.arguments[element]);
+					}
+					break;
+				case 'updateexpression':
+					//increment No of operators
+					characteristics.N1++
+					characteristics.uniqueOperators[syntax.operator]=true;
+					//increment total No of operands
+					characteristics.N2++;
+					//update unique operands
+					characteristics.uniqueOperands[getOperandAsText(syntax.argument)]=true;
+					break;
+				case 'binaryexpression':
+					//increment total No of operators
+					characteristics.N1++
+					//update unique operators
+					characteristics.uniqueOperators[syntax.operator]=true;
+					//increment total No of operands
+					characteristics.N2+=2;
+					//update unique operands
+					characteristics.uniqueOperands[getOperandAsText(syntax.left)]=true;
+					characteristics.uniqueOperands[getOperandAsText(syntax.right)]=true;
+					//analyse sub-trees
+					analyseCode(syntax.left);
+					analyseCode(syntax.right);
+					break;
+				case 'assignmentexpression':
+					//assignment operation
+					characteristics.NAS++;
+					analyseCode(syntax.right);
+					break;
+				default:
+			}	
+		}
+		
+		function getOperandAsText(operand)
+		{
+			if(typeof operand!=='object')
+			{
+				return '';
+			}
+			
+			if(typeof operand.type!=='string')
+			{
+				return '';
+			}
+			
+			switch(operand.type.toLowerCase())
+			{
+				case 'identifier':
+					return operand.name;
+				case 'literal':
+					return operand.raw;
+				case 'binaryexpression':
+					return getOperandAsText(operand.left)+operand.operator+getOperandAsText(operand.right);
+				default:
+					return '';
+			}
+		}
+	</script>
+</head>
+<body>
+	<h1>Code Analyser</h1>
+	<input id="do" type="button" onclick="analyse()" value="Analyse"/>
+	<hr/>
+	<textarea id="editor" rows="40" cols="100">
+var a=4;
+var b=3;
+var c=a+b;
+alert('the result is '+c);
+	</textarea> 
+</body>
+</html>
