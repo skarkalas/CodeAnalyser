@@ -22,8 +22,8 @@
 				N2:		0,
 				n1:		function(){return Object.keys(characteristics.uniqueOperators).length},
 				n2:		function(){return Object.keys(characteristics.uniqueOperands).length},
-				N:		0,
-				n:		0,
+				N:		function(){return characteristics.N1+characteristics.N2},
+				n:		function(){return characteristics.n1()+characteristics.n2()},
 				NoV:	0,
 				NoL:	0,
 				NoNL:	0,
@@ -31,17 +31,28 @@
 				uniqueOperators: new Array(),
 				uniqueOperands: new Array()
 			};
-		
-			analyseCode(syntax);
-			alert('No of assignment statements:' +characteristics.NAS);
-			alert('Lines of code:' +characteristics.LoC);
-			alert('Total No of Operators:' +characteristics.N1);
-			alert('No of unique operators:' +characteristics.n1());
-			alert('Total No of Operands:' +characteristics.N2);
-			alert('No of unique operands:' +characteristics.n2());
+
+			//calculate Lines of Code
+			characteristics.LoC=(code.match(/;/g)||[]).length;
 			
-			for(p in characteristics.uniqueOperands)
-			alert(p+' '+characteristics.uniqueOperands[p]);
+			//analyse the code for other characteristics
+			analyseCode(syntax);
+			
+			var report='';
+			report+='No of assignment statements:' +characteristics.NAS+'\n';
+			report+='Lines of code:' +characteristics.LoC+'\n';
+			report+='Total No of operators:' +characteristics.N1+'\n';
+			report+='No of unique operators:' +characteristics.n1()+'\n';
+			report+='Total No of operands:' +characteristics.N2+'\n';
+			report+='No of unique operands:' +characteristics.n2()+'\n';
+			report+='Programe length:' +characteristics.N()+'\n';
+			report+='Programe vocabulary:' +characteristics.n()+'\n';
+			report+='No of variables:' +characteristics.NoV+'\n';
+			report+='No of loops:' +characteristics.NoL;
+			alert(report);
+			
+			//for(p in characteristics.uniqueOperators)
+			//alert(p+' '+characteristics.uniqueOperators);
 			
 		}
 		
@@ -60,13 +71,13 @@
 			switch(syntax.type.toLowerCase())
 			{
 				case 'program':
-					characteristics.LoC=syntax.body.length;
 					for(var element in syntax.body)
 					{
 						analyseCode(syntax.body[element]);
 					}
 					break;
 				case 'variabledeclaration':
+					characteristics.NoV++;
 					for(var element in syntax.declarations)
 					{
 						analyseCode(syntax.declarations[element]);
@@ -100,7 +111,7 @@
 					break;
 				case 'binaryexpression':
 					//increment total No of operators
-					characteristics.N1++
+					characteristics.N1++;
 					//update unique operators
 					characteristics.uniqueOperators[syntax.operator]=true;
 					//increment total No of operands
@@ -116,6 +127,21 @@
 					//assignment operation
 					characteristics.NAS++;
 					analyseCode(syntax.right);
+					break;
+				case 'forstatement':
+					analyseCode(syntax.init);			
+					analyseCode(syntax.update);			
+				case 'dowhilestatement':
+				case 'whilestatement':
+					characteristics.NoL++;
+					analyseCode(syntax.body);
+					analyseCode(syntax.test);
+					break;
+				case 'blockstatement':
+					for(var element in syntax.body)
+					{
+						analyseCode(syntax.body[element]);
+					}
 					break;
 				default:
 			}	
