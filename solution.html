@@ -48,7 +48,10 @@
 			report+='Programe length:' +characteristics.N()+'\n';
 			report+='Programe vocabulary:' +characteristics.n()+'\n';
 			report+='No of variables:' +characteristics.NoV+'\n';
-			report+='No of loops:' +characteristics.NoL;
+			report+='No of loops:' +characteristics.NoL+'\n';
+			report+='No of nested loops:' +characteristics.NoNL+'\n';
+			report+='No of blocks:' +characteristics.NoB;
+			
 			alert(report);
 			
 			//for(p in characteristics.uniqueOperators)
@@ -136,8 +139,10 @@
 					characteristics.NoL++;
 					analyseCode(syntax.body);
 					analyseCode(syntax.test);
+					getImmediateNestedLoop(syntax.body);
 					break;
 				case 'blockstatement':
+					characteristics.NoB++;
 					for(var element in syntax.body)
 					{
 						analyseCode(syntax.body[element]);
@@ -145,6 +150,35 @@
 					break;
 				default:
 			}	
+		}
+		
+		function getImmediateNestedLoop(syntax)
+		{
+			if(typeof syntax!=='object')
+			{
+				return;
+			}
+			
+			if(typeof syntax.type!=='string')
+			{
+				return;
+			}	
+			
+			switch(syntax.type.toLowerCase())
+			{
+				case 'blockstatement':
+				for(var element in syntax.body)
+				{
+					getImmediateNestedLoop(syntax.body[element]);
+				}
+				break;
+				case 'forstatement':
+				case 'dowhilestatement':
+				case 'whilestatement':
+				characteristics.NoNL++;
+				break;
+				default:
+			}
 		}
 		
 		function getOperandAsText(operand)
