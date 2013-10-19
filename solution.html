@@ -40,6 +40,7 @@
 			
 			var report='';
 			report+='No of assignment statements:' +characteristics.NAS+'\n';
+			report+='McCabe complexity:' +(characteristics.MCC+1)+'\n';
 			report+='Lines of code:' +characteristics.LoC+'\n';
 			report+='Total No of operators:' +characteristics.N1+'\n';
 			report+='No of unique operators:' +characteristics.n1()+'\n';
@@ -55,8 +56,7 @@
 			alert(report);
 			
 			//for(p in characteristics.uniqueOperators)
-			//alert(p+' '+characteristics.uniqueOperators);
-			
+			//alert(p+' '+characteristics.uniqueOperators);	
 		}
 		
 		function analyseCode(syntax)
@@ -140,12 +140,36 @@
 					analyseCode(syntax.body);
 					analyseCode(syntax.test);
 					getImmediateNestedLoop(syntax.body);
+					characteristics.MCC++;
 					break;
 				case 'blockstatement':
 					characteristics.NoB++;
 					for(var element in syntax.body)
 					{
 						analyseCode(syntax.body[element]);
+					}
+					break;
+				case 'ifstatement':
+					characteristics.MCC++;
+					if(syntax.alternate!==null)
+					{
+						analyseCode(syntax.alternate);
+					}
+					analyseCode(syntax.consequent);
+					analyseCode(syntax.test);
+					break;
+				case 'switchstatement':
+					for(var element in syntax.cases)
+					{
+						analyseCode(syntax.cases[element]);
+					}
+					analyseCode(syntax.discriminant);
+					break;
+				case 'switchcase':
+					characteristics.MCC++;
+					for(var element in syntax.consequent)
+					{
+						analyseCode(syntax.consequent[element]);
 					}
 					break;
 				default:
