@@ -20,10 +20,16 @@
 				MCC:	0,
 				N1:		0,
 				N2:		0,
-				n1:		function(){return Object.keys(characteristics.uniqueOperators).length},
-				n2:		function(){return Object.keys(characteristics.uniqueOperands).length},
-				N:		function(){return characteristics.N1+characteristics.N2},
-				n:		function(){return characteristics.n1()+characteristics.n2()},
+				n1:			function(){return Object.keys(characteristics.uniqueOperators).length},
+				n2:			function(){return Object.keys(characteristics.uniqueOperands).length},
+				N:			function(){return characteristics.N1+characteristics.N2},
+				n:			function(){return characteristics.n1()+characteristics.n2()},
+				difficulty:	function(){return (characteristics.n1()/2)*(characteristics.N2/characteristics.n2())},
+				volume:		function(){return characteristics.N()*Math.log(characteristics.n())},
+				effort:		function(){return characteristics.difficulty()*characteristics.volume()},
+				PTime: 		function(){return characteristics.effort()/18},
+				CN: 		function(){return characteristics.n1()*Math.log(characteristics.n1())+characteristics.n2()*Math.log(characteristics.n2())},
+				MIndex: 	function(){return Math.max(0,(171-5.2*Math.log(characteristics.volume())-0.23*(characteristics.MCC+1)-16.2*Math.log(characteristics.LoC))*100/171)},
 				NoV:	0,
 				NoL:	0,
 				NoNL:	0,
@@ -40,14 +46,20 @@
 			
 			var report='';
 			report+='No of assignment statements:' +characteristics.NAS+'\n';
-			report+='McCabe complexity:' +(characteristics.MCC+1)+'\n';
+			report+='McCabe complexity metric - cyclomatic complexity:' +(characteristics.MCC+1)+'\n';
+			report+='Halstead complexity metric - difficulty:' +characteristics.difficulty()+'\n';
+			report+='Halstead complexity metric - volume:' +characteristics.volume()+'\n';
+			report+='Halstead complexity metric - effort:' +characteristics.effort()+'\n';
+			report+='Halstead complexity metric - vocabulary:' +characteristics.n()+'\n';
+			report+='Halstead complexity metric - length:' +characteristics.N()+'\n';
+			report+='Halstead complexity metric - calculated length:' +characteristics.CN()+'\n';
+			report+='Halstead complexity metric - programming time (sec):' +characteristics.PTime()+'\n';
+			report+='Oman, Hagemeister complexity metric - maintainability index:' +characteristics.MIndex()+'\n';
 			report+='Lines of code:' +characteristics.LoC+'\n';
 			report+='Total No of operators:' +characteristics.N1+'\n';
 			report+='No of unique operators:' +characteristics.n1()+'\n';
 			report+='Total No of operands:' +characteristics.N2+'\n';
 			report+='No of unique operands:' +characteristics.n2()+'\n';
-			report+='Programe length:' +characteristics.N()+'\n';
-			report+='Programe vocabulary:' +characteristics.n()+'\n';
 			report+='No of variables:' +characteristics.NoV+'\n';
 			report+='No of loops:' +characteristics.NoL+'\n';
 			report+='No of nested loops:' +characteristics.NoNL+'\n';
